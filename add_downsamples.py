@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Script for (somewhat safely) adding metadata required by BigDataViewer
 (and optionally n5-viewer) to multiscale datasets stored in N5 containers.
