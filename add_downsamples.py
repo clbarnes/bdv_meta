@@ -298,7 +298,7 @@ def main(args=None):
             )
         attrs["pixelResolution"] = {"dimensions": resolution, "unit": units[0]}
 
-    attrs.to_dir(parsed.group)
+    attrs.to_dir(parsed.group, dry_run=parsed.dry_run)
 
 
 if __name__ == "__main__":
