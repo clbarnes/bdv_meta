@@ -19,9 +19,7 @@ ARRAY_ATTR_KEYS = {"dimensions", "dataType", "blockSize", "compression"}
 SCALE_RE = re.compile(r"s(\d+)")
 unit_re_str = r"([YZEPTGMkhdcmuμnpfazy]|da)?(m|s|Hz)"
 UNIT_RE = re.compile(unit_re_str)
-RESOLUTION_RE = re.compile(
-    r"(?P<value>(\d*\.?)?\d+)\s*(?P<unit>" + unit_re_str + ")?"
-)
+RESOLUTION_RE = re.compile(r"(?P<value>(\d*\.?)?\d+)\s*(?P<unit>" + unit_re_str + ")?")
 
 Jso = tp.Optional[tp.Union[tp.Dict[str, "Jso"], tp.List["Jso"], int, float, bool, str]]
 
@@ -231,7 +229,12 @@ def main(args=None):
         action="store_true",
         help="Add additional metadata for compatibility with n5-viewer",
     )
-    parser.add_argument("-d", "--dry-run", action="store_true", help="Do not change any files, just log what would be done")
+    parser.add_argument(
+        "-d",
+        "--dry-run",
+        action="store_true",
+        help="Do not change any files, just log what would be done",
+    )
     parser.add_argument(
         "-f",
         "--force",

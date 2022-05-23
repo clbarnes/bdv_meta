@@ -10,6 +10,7 @@ from attr import attributes
 
 DIMS = "xyz"
 
+
 def validate_dimensions(s):
     s = s.lower()
     if len(s) != 3:
@@ -64,7 +65,9 @@ def get_downsampling_factors(group_path):
             factors.append(factor)
 
     if len(factors) != len(scales):
-        raise RuntimeError("Number of downsampling factors does not match number of scale levels")
+        raise RuntimeError(
+            "Number of downsampling factors does not match number of scale levels"
+        )
 
     return factors
 
@@ -81,12 +84,7 @@ def _main(n5_group: Path, dimension_order: str):
         dims = [*permutation, slicing_dim]
         print(permutation)
         print("--")
-        print(
-            "|".join(
-                ",".join(str(f[d]) for d in dims)
-                for f in factor_dicts
-            )
-        )
+        print("|".join(",".join(str(f[d]) for d in dims) for f in factor_dicts))
 
 
 if __name__ == "__main__":

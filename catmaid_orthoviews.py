@@ -86,8 +86,7 @@ def make_h2n5_url(h2n5_base, group, slicing="xy"):
     tile_slug = "{}_{}".format(*H2N5_TILE_SIZE)
     axis_slug = "/".join(AXES_IDX[d] for d in slicing + depth)
     return urljoin(
-        h2n5_base, "tile", group,
-        "%SCALE_DATASET%", slice_slug, tile_slug, axis_slug
+        h2n5_base, "tile", group, "%SCALE_DATASET%", slice_slug, tile_slug, axis_slug
     )
 
 
@@ -104,7 +103,7 @@ def make_n5_url(path, slicing="xy"):
 
 
 def make_slicing_data(root, group, slicing="xy", h2n5_root=None, no_n5=False):
-    rows = [slicing.upper(), "-"*len(slicing)]
+    rows = [slicing.upper(), "-" * len(slicing)]
 
 
 def dict_in_order(d, keys):
@@ -145,8 +144,14 @@ def _main(root, group, h2n5_root=None, no_n5=False):
         rows.append(slicing.upper())
         dim_order = slicing + get_other_axis(slicing)
         rows.append(megatitle(slicing))
-        rows.append("Dimension: " + "X: {}\tY: {}\tZ: {}".format(*dict_in_order(dims, dim_order)))
-        rows.append("Resolution: " + "X: {}\tY: {}\tZ: {}".format(*dict_in_order(res, dim_order)))
+        rows.append(
+            "Dimension: "
+            + "X: {}\tY: {}\tZ: {}".format(*dict_in_order(dims, dim_order))
+        )
+        rows.append(
+            "Resolution: "
+            + "X: {}\tY: {}\tZ: {}".format(*dict_in_order(res, dim_order))
+        )
         rows.append("Downsampling: " + format_downsampling(factors, slicing))
         if h2n5_root:
             rows.append("H2N5 URL: " + make_h2n5_url(h2n5_root, group, slicing))
