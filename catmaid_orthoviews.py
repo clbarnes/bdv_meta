@@ -2,7 +2,13 @@
 """Generate all the stack information needed for CATMAID orthoviews from an N5 scale pyramid"""
 from argparse import ArgumentParser
 import logging
-from urllib.request import urlopen, build_opener, install_opener, HTTPPasswordMgrWithDefaultRealm, HTTPBasicAuthHandler
+from urllib.request import (
+    urlopen,
+    build_opener,
+    install_opener,
+    HTTPPasswordMgrWithDefaultRealm,
+    HTTPBasicAuthHandler,
+)
 import json
 import os
 import ssl
@@ -91,7 +97,7 @@ def main(args=None):
         help=(
             "Fully qualified name of the multiscale group within the container. "
             "This group should contain scales s0, s1 etc.."
-        )
+        ),
     )
     parser.add_argument(
         "--h2n5-root",
@@ -99,7 +105,7 @@ def main(args=None):
         help=(
             "If this N5 container can also be accessed through h2n5, "
             "give the URL to the h2n5 instance (should end before 'tile')"
-        )
+        ),
     )
     parser.add_argument(
         "--no-n5",
@@ -108,7 +114,7 @@ def main(args=None):
         help=(
             "If given, the stack mirror information for the raw N5 stack is omitted. "
             "This is often preferable because N5 stacks are slow and not very stable."
-        )
+        ),
     )
     parser.add_argument(
         "--http-basic-auth",
@@ -116,11 +122,17 @@ def main(args=None):
         help=(
             "HTTP Basic authentication if required for this script to access the N5 data, "
             "as 'username:password'."
-        )
+        ),
     )
     parsed = parser.parse_args(args)
 
-    _main(parsed.root, parsed.group, parsed.h2n5_root, parsed.no_n5, parsed.http_basic_auth)
+    _main(
+        parsed.root,
+        parsed.group,
+        parsed.h2n5_root,
+        parsed.no_n5,
+        parsed.http_basic_auth,
+    )
 
 
 def urljoin(base, *items):

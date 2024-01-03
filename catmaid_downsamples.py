@@ -6,7 +6,6 @@ from argparse import ArgumentParser
 from pathlib import Path
 import json
 
-from attr import attributes
 
 DIMS = "xyz"
 
@@ -21,7 +20,6 @@ def validate_dimensions(s):
 
 
 def main(args=None):
-
     parser = ArgumentParser()
     parser.add_argument("n5group", type=Path)
     parser.add_argument("-d", "--dimension-order", default=validate_dimensions(DIMS))
