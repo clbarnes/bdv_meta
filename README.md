@@ -1,6 +1,7 @@
 # bdv_meta
 
-Python script for adding BigDataViewer downscaling metadata to N5 containers
+Scripts for interoperation between [CATMAID](https://catmaid.org) and
+[BigDataViewer metadata](https://github.com/google/neuroglancer/tree/master/src/neuroglancer/datasource/n5).
 
 ## `catmaid_orthoviews.py`
 
