@@ -2,10 +2,7 @@
 """Generate all the stack information needed for CATMAID orthoviews from an N5 scale pyramid"""
 from argparse import ArgumentParser
 import logging
-import re
-from tokenize import group
-from urllib import response
-from urllib.request import urlopen
+from urllib.request import urlopen, build_opener, install_opener, HTTPPasswordMgrWithDefaultRealm, HTTPBasicAuthHandler
 import json
 import os
 import ssl
@@ -52,21 +49,78 @@ def join_root_item(root, item):
     return os.path.join(root, item.strip(os.path.sep))
 
 
-def get_group_s0_attributes(root, group):
+def install_http_basic(url: str, user_pass: str):
+    """
+    Adapted from https://stackoverflow.com/a/77668694
+    """
+    user, passwd = user_pass.split(":", 1)
+    password_mgr = HTTPPasswordMgrWithDefaultRealm()
+    password_mgr.add_password(None, url, user, passwd)
+
+    handler = HTTPBasicAuthHandler(password_mgr)
+
+    # create "opener" (OpenerDirector instance)
+    opener = build_opener(handler)
+
+    # Install the opener.
+    # Now all calls to urllib.request.urlopen use our opener.
+    install_opener(opener)
+
+
+def get_group_s0_attributes(root, group, http_basic=None):
+    if http_basic is not None:
+        install_http_basic(root, http_basic)
     group_meta = get_attributes(root, group)
     ds_meta = get_attributes(root, group + "/s0")
     return group_meta, ds_meta
 
 
 def main(args=None):
-    parser = ArgumentParser()
-    parser.add_argument("root")
-    parser.add_argument("group")
-    parser.add_argument("--h2n5-root", "-r")
-    parser.add_argument("--no-n5", "-n", action="store_true")
-    parsed = parser.parse_args()
+    parser = ArgumentParser(
+        description=(
+            "Tool to print information for a CATMAID stack and mirrors "
+            "from a multiscale N5 volume with bigdataviewer metadata. "
+        )
+    )
+    parser.add_argument(
+        "root",
+        help="Path or URL to the root of the N5 container",
+    )
+    parser.add_argument(
+        "group",
+        help=(
+            "Fully qualified name of the multiscale group within the container. "
+            "This group should contain scales s0, s1 etc.."
+        )
+    )
+    parser.add_argument(
+        "--h2n5-root",
+        "-r",
+        help=(
+            "If this N5 container can also be accessed through h2n5, "
+            "give the URL to the h2n5 instance (should end before 'tile')"
+        )
+    )
+    parser.add_argument(
+        "--no-n5",
+        "-n",
+        action="store_true",
+        help=(
+            "If given, the stack mirror information for the raw N5 stack is omitted. "
+            "This is often preferable because N5 stacks are slow and not very stable."
+        )
+    )
+    parser.add_argument(
+        "--http-basic-auth",
+        "-a",
+        help=(
+            "HTTP Basic authentication if required for this script to access the N5 data, "
+            "as 'username:password'."
+        )
+    )
+    parsed = parser.parse_args(args)
 
-    _main(parsed.root, parsed.group, parsed.h2n5_root, parsed.no_n5)
+    _main(parsed.root, parsed.group, parsed.h2n5_root, parsed.no_n5, parsed.http_basic_auth)
 
 
 def urljoin(base, *items):
@@ -102,10 +156,6 @@ def make_n5_url(path, slicing="xy"):
     return fn(path, "%SCALE_DATASET%", slice_slug)
 
 
-def make_slicing_data(root, group, slicing="xy", h2n5_root=None, no_n5=False):
-    rows = [slicing.upper(), "-" * len(slicing)]
-
-
 def dict_in_order(d, keys):
     return [d[k] for k in keys]
 
@@ -128,8 +178,8 @@ def title(s):
     return f"{s}\n{'-'*len(s)}"
 
 
-def _main(root, group, h2n5_root=None, no_n5=False):
-    group_meta, s0_meta = get_group_s0_attributes(root, group)
+def _main(root, group, h2n5_root=None, no_n5=False, http_basic=None):
+    group_meta, s0_meta = get_group_s0_attributes(root, group, http_basic)
 
     dims = dict(zip(DIMS, s0_meta["dimensions"]))
     res = dict(zip(DIMS, group_meta["resolution"]))
