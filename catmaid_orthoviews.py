@@ -8,10 +8,14 @@ from urllib.request import (
     install_opener,
     HTTPPasswordMgrWithDefaultRealm,
     HTTPBasicAuthHandler,
+    Request
 )
+from typing import Optional
 import json
 import os
 import ssl
+from base64 import b64encode
+
 
 DIMS = "xyz"
 DIM_IDX = dict(zip(DIMS, range(3)))
@@ -25,13 +29,21 @@ SSL_CONTEXT.check_hostname = False
 SSL_CONTEXT.verify_mode = ssl.CERT_NONE
 
 
+def auth_header(user_pass: Optional[str]) -> dict[str, str]:
+    d = dict()
+    if user_pass is not None:
+        d["Authorization"] = b64encode(user_pass.encode()).decode()
+    return d
+
+
 def is_url(s):
     return s.startswith("http://") or s.startswith("https://")
 
 
-def _get_attributes_remote(root, item):
+def _get_attributes_remote(root, item, user_pass: Optional[str]=None):
     url = join_root_item(root, item)
-    response = urlopen(urljoin(url, "attributes.json"), context=SSL_CONTEXT)
+    req = Request(urljoin(url, "attributes.json"), headers=auth_header(user_pass))
+    response = urlopen(req)
     return json.loads(response.read().decode("utf-8"))
 
 
@@ -41,9 +53,9 @@ def _get_attributes_local(root, item):
         return json.load(f)
 
 
-def get_attributes(root, item):
+def get_attributes(root, item, user_pass: Optional[str]=None):
     if is_url(root):
-        return _get_attributes_remote(root, item)
+        return _get_attributes_remote(root, item, user_pass)
     if root.startswith("file://"):
         root = root[7:]
     return _get_attributes_local(root, item)
@@ -55,29 +67,9 @@ def join_root_item(root, item):
     return os.path.join(root, item.strip(os.path.sep))
 
 
-def install_http_basic(url: str, user_pass: str):
-    """
-    Adapted from https://stackoverflow.com/a/77668694
-    """
-    user, passwd = user_pass.split(":", 1)
-    password_mgr = HTTPPasswordMgrWithDefaultRealm()
-    password_mgr.add_password(None, url, user, passwd)
-
-    handler = HTTPBasicAuthHandler(password_mgr)
-
-    # create "opener" (OpenerDirector instance)
-    opener = build_opener(handler)
-
-    # Install the opener.
-    # Now all calls to urllib.request.urlopen use our opener.
-    install_opener(opener)
-
-
 def get_group_s0_attributes(root, group, http_basic=None):
-    if http_basic is not None:
-        install_http_basic(root, http_basic)
-    group_meta = get_attributes(root, group)
-    ds_meta = get_attributes(root, group + "/s0")
+    group_meta = get_attributes(root, group, user_pass=http_basic)
+    ds_meta = get_attributes(root, group + "/s0", user_pass=http_basic)
     return group_meta, ds_meta
 
 
